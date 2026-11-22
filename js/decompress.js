@@ -90,7 +90,7 @@
   const hasSentences = paras => (paras || []).some(p => p && Array.isArray(p.sentences));
   function tally(paras) {                           // bytes and sentence counts per label
     const t = { supported: 0, contradicted: 0, unconfirmed: 0, n: { supported: 0, contradicted: 0, unconfirmed: 0 } };
-    (paras || []).forEach(p => (p.sentences || []).forEach(s => { if (s && t[s.label] != null) { t[s.label] += bytes(s.text); t.n[s.label]++; } }));
+    (paras || []).forEach(p => (p.sentences || []).forEach(s => { if (s && t[s.label] != null) { t[s.label] += s.b != null ? s.b : bytes(s.text); t.n[s.label]++; } }));   // s.b: original size of a sentence the online copy hides
     return t;
   }
   // The paragraph's heading line(s), where they stand in its text: before the body, or after it (the last
@@ -614,7 +614,7 @@
     // stats: from step 08 when present, else counted here
     const s0 = (a.stats || {})[k] || {};
     const genBytes = fin(s0.gen_bytes) ? s0.gen_bytes : gen.reduce((x, p) => x + bytes(p.text), 0);
-    const genWords = gen.reduce((x, p) => x + words(p.text), 0);
+    const genWords = fin(s0.gen_words) ? s0.gen_words : gen.reduce((x, p) => x + words(p.text), 0);
     const realBytes = real.reduce((x, p) => x + bytes(p), 0), realWords = real.reduce((x, p) => x + words(p), 0);
     const cut = fin(a.real_total_paras) && a.real_total_paras > real.length;
     const realSub = cut ? `first ${C.fmtInt(real.length)} of ${C.fmtInt(a.real_total_paras)} paragraphs shown` : realWords >= 2400 ? 'first 2,500 words shown' : `${C.fmtInt(realWords)} words`;
