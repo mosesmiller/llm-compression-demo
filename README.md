@@ -10,17 +10,19 @@ topic, the way a poll scales up from a sample.
 The live lab (section 9) runs only in class, on the instructor's computer. Everything else on the site is the
 recorded experiment, and it runs entirely in the browser (no tracking, no external scripts).
 
+**In this online copy, the models' text is shown only where the fact check confirmed it.** Language models invent
+things about real people and organizations, so every generated sentence the fact check could not confirm appears
+as […], grey if the real article does not mention it and red if the real article contradicts it. All statistics
+count the full text as written. Topics that do not exist (section 8) are shown as written.
+
 ## Sources and licences
 
 - **Wikipedia text** (the real articles shown next to the model's versions): English Wikipedia snapshot of
   2023-11-01 (Hugging Face `wikimedia/wikipedia`, `20231101.en`). Text by Wikipedia contributors, licensed
   [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); each article links to its Wikipedia page.
-  The real side is shortened to its first 2,500 words.
+  The real side is plain text, shortened to its first 2,500 words.
 - **Page views**: Wikimedia pageview dumps, October 2023.
 - **Generated text**: written by Qwen2.5-7B-Instruct, Qwen3-0.6B and Qwen2.5-32B-Instruct (Apache 2.0), from the
-  title alone. **It is machine output, shown to measure how often it is wrong. Much of it is false. Do not cite it.**
-  In this online copy, generated sentences that make a sensitive claim about a real person or organization (for
-  example a crime, an allegation, or that a living person has died) and that the fact check could not confirm are
-  replaced by a note. They keep their fact-check colour, and all statistics count them as written.
+  title alone. It is machine output, shown to measure how often it is wrong. Do not cite it.
 - **Fact check**: facebook/bart-large-mnli; **similarity**: BAAI/bge-small-en-v1.5 and
   sentence-transformers/all-MiniLM-L6-v2.
