@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Model Is a Compression</title>
+<meta name="description" content="AI for Business: from regression to LLMs. Can a 4.30 GB model file contain English Wikipedia, and write it back from titles alone? A local experiment.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M7 22 L13 14 L18 18 L25 9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#s1">Skip to content</a>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#s1" title="Back to the start">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path d="M7 22 L13 14 L18 18 L25 9"/></svg>
+      <span>A model is a compression</span>
+    </a>
+    <nav class="secnav" id="secnav" aria-label="Sections"></nav>
+    <div class="topbar-tools">
+      <span class="badge badge-mock" id="mockBadge" hidden title="These numbers are placeholders for layout. Run the pipeline to replace them.">Mock data</span>
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Dark / light theme (t)">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="main">
+
+<!-- 1 ------------------------------------------------------------------ -->
+<section id="s1" class="section hero" data-title="The question" data-short="Question">
+  <div class="wrap">
+    <p class="kicker">AI for Business · Global MBA · Reichman University</p>
+    <h1 class="hero-title">Can a <span class="hl" id="heroModelSize">4.30&nbsp;GB</span> file contain Wikipedia?</h1>
+    <p class="lead" id="heroLead">A language model is a single file of numbers. In class we tested what is inside it, on one Mac, with Wi‑Fi off.</p>
+    <div class="bignums" id="heroNums"></div>
+    <p class="hero-punch" id="heroPunch"></p>
+    <p class="note src" id="heroSrc"></p>
+    <p class="hint"><kbd>→</kbd> or <kbd>j</kbd> next · <kbd>←</kbd> or <kbd>k</kbd> back · <kbd>1</kbd>…<kbd>9</kbd>, <kbd>0</kbd> jump to a section · <kbd>t</kbd> theme</p>
+  </div>
+</section>
+
+<!-- 2 ------------------------------------------------------------------ -->
+<section id="s2" class="section" data-title="From regression to LLM" data-short="Regression">
+  <div class="wrap">
+    <p class="kicker">2 · What is a model?</p>
+    <h2>A model squeezes data into a few parameters</h2>
+    <p class="lead">A regression replaces hundreds of data points with a handful of numbers. You can throw the y-values away and regenerate them from those numbers and the x-values, approximately. Whatever does not come back was lost.</p>
+    <div class="reg" id="reg">
+      <div class="reg-main">
+        <div class="reg-plot card">
+          <canvas id="regCanvas" aria-label="Scatter plot of data points and the fitted curve" role="img"></canvas>
+          <div class="reg-legend" id="regLegend"></div>
+        </div>
+        <div class="card reg-readout" id="regReadout" aria-live="polite"></div>
+      </div>
+      <div class="reg-side">
+        <div class="card reg-controls">
+          <div class="presets" role="group" aria-label="Presets">
+            <button type="button" class="chip" data-preset="under">Too simple</button>
+            <button type="button" class="chip" data-preset="good">Good fit</button>
+            <button type="button" class="chip" data-preset="over">Too many parameters</button>
+          </div>
+          <label class="slider"><span>Data points <b id="regNVal">60</b></span><input id="regN" type="range" min="20" max="500" step="10" value="60"></label>
+          <label class="slider"><span>Noise <b id="regNoiseVal">0.25</b></span><input id="regNoise" type="range" min="0" max="1" step="0.05" value="0.25"></label>
+          <label class="slider"><span>Parameters <b id="regDegVal">4</b> <small id="regDegNote">(polynomial degree 3)</small></span><input id="regDeg" type="range" min="0" max="15" step="1" value="3"></label>
+          <div class="btnrow">
+            <button type="button" class="btn btn-primary" id="regDecompress">Decompress</button>
+            <button type="button" class="btn" id="regNew">New data</button>
+          </div>
+          <div class="toggles">
+            <label class="switch"><input type="checkbox" id="regExtra"><span></span>Predict beyond the data</label>
+            <label class="switch"><input type="checkbox" id="regTruth"><span></span>Show the hidden truth</label>
+          </div>
+        </div>
+        <div class="card params-card">
+          <div class="params-head"><b>This is the entire model.</b> <span id="regParamsNote"></span></div>
+          <div class="params" id="regParams"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mapping">
+      <h3>The same idea, at LLM scale</h3>
+      <div class="map-grid" id="mapGrid">
+        <div class="map-row"><div class="map-a">Input <i>x</i></div><div class="map-arrow">→</div><div class="map-b">The article title</div></div>
+        <div class="map-row"><div class="map-a">Data points</div><div class="map-arrow">→</div><div class="map-b">Wikipedia articles (and the rest of the web)</div></div>
+        <div class="map-row"><div class="map-a">Parameters</div><div class="map-arrow">→</div><div class="map-b">The model's weights: 7.6 billion numbers</div></div>
+        <div class="map-row"><div class="map-a">Fit quality (R²)</div><div class="map-arrow">→</div><div class="map-b">How much of the real article comes back (similarity shows the topic; the fact check shows the truth)</div></div>
+        <div class="map-row"><div class="map-a">Residuals</div><div class="map-arrow">→</div><div class="map-b">Lost details: names, numbers, dates</div></div>
+        <div class="map-row"><div class="map-a">Predicting beyond the data</div><div class="map-arrow">→</div><div class="map-b">Confident answers about things it never saw (hallucination)</div></div>
+        <div class="map-row"><div class="map-a">More parameters</div><div class="map-arrow">→</div><div class="map-b">A bigger model that loses less, if it has enough data (with too little, it memorises noise)</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ------------------------------------------------------------------ -->
+<section id="s3" class="section" data-title="Sizes" data-short="Sizes">
+  <div class="wrap">
+    <p class="kicker">3 · Sizes</p>
+    <h2>How big is everything?</h2>
+    <p class="lead" id="sizesLead">Each square's area is proportional to its size on disk. English Wikipedia only.</p>
+    <div class="card">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="View">
+          <button type="button" class="seg-b is-on" data-sizes="area">Area</button>
+          <button type="button" class="seg-b" data-sizes="log">Log scale</button>
+        </div>
+        <label class="switch"><input type="checkbox" id="sizesTrain"><span></span>Include the training data</label>
+      </div>
+      <div class="sizes" id="sizes"></div>
+      <div class="sizes-detail" id="sizesDetail" aria-live="polite"></div>
+      <p class="note src" id="sizesSrc"></p>
+    </div>
+    <p class="takeaway" id="sizesTake"></p>
+  </div>
+</section>
+
+<!-- 4 ------------------------------------------------------------------ -->
+<section id="s4" class="section dc" data-title="The decompression test" data-short="Decompress">
+  <div class="wrap">
+    <p class="kicker">4 · The decompression test</p>
+    <h2>Give it only a title. It writes the whole article.</h2>
+    <p class="lead" id="dcLead">If the model compressed Wikipedia, it should be able to decompress it. We asked it for the complete article on each sampled topic, from the title alone, and fact-checked every sentence against the real article. Then we scaled up to every eligible English topic (lists, disambiguation pages and very short articles are left out), the way a poll scales up from a sample.</p>
+    <div class="dc-big" id="dcBig" aria-live="polite"></div>
+
+    <div class="card block" data-stop id="b-calc">
+      <div class="block-head"><h3>The decompression calculator</h3><div class="seg seg-models" id="dcModel" role="group" aria-label="Model"></div></div>
+      <p class="sub" id="dcCalcSub">What one model file would write if we asked it for every eligible English Wikipedia article, estimated from our sample, and how much of it the real articles confirm. Bars are to scale; the thin lines show 95% intervals.</p>
+      <div class="dc-calc">
+        <div class="dc-bars" id="dcBars"></div>
+        <div class="dc-side">
+          <label class="slider" id="dcTopicsBox"><span>Topics included: <b id="dcTopicsVal">all</b></span><input type="range" id="dcTopics" min="0" max="6" step="1" value="0" aria-describedby="dcTopicsVal"></label>
+          <div class="dc-read" id="dcRead" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="dc-nums" id="dcNums"></div>
+    </div>
+
+    <div class="card block" data-stop id="b-dcbins">
+      <div class="block-head"><h3 id="dcBinsTitle">Every topic gets an article. How much of it holds up?</h3>
+        <div class="dc-tools"><div class="seg seg-models" id="dcBinsModel" role="group" aria-label="Model"></div><div class="seg" id="dcBinsMode" role="group" aria-label="Show"></div></div></div>
+      <p class="sub" id="dcBinsSub">Per topic, by popularity: what the model writes, split by the fact check, next to the length of the real article.</p>
+      <div class="chart" id="chDcBins" style="--h:420px"></div>
+      <p class="takeaway" id="dcBinsTake"></p>
+      <details class="tbl"><summary>Show as a table</summary><div id="dcBinsTable"></div></details>
+    </div>
+
+    <div class="card block av" data-stop id="b-viewer">
+      <div class="block-head"><h3>Read it, sentence by sentence</h3><div class="seg seg-models" id="avModel" role="group" aria-label="Model"></div></div>
+      <p class="sub">Pick a topic. On the left, what the model wrote from the title alone (machine output: much of it is false), every sentence fact-checked; on the right, the real article. Hover over or tap a sentence for the check; its paragraph's closest match lights up in the real article.</p>
+      <div class="av-pick" id="avPick" hidden>
+        <div class="pills" id="avFeatured" role="group" aria-label="Featured topics"></div>
+        <div class="av-tools">
+          <div class="ac av-ac"><input type="search" id="avSearch" placeholder="Search all topics…" autocomplete="off" aria-label="Search topics" aria-autocomplete="list" aria-controls="avAc"><div class="ac-list" id="avAc" hidden></div></div>
+          <button type="button" class="btn" id="avRandom">Random topic</button>
+          <button type="button" class="btn" id="avFic">A made-up topic</button>
+        </div>
+      </div>
+      <div class="av-legend" id="avLegend">
+        <span class="lg"><span class="sn s-ok">✓ confirmed by the real article</span></span>
+        <span class="lg"><span class="sn s-bad">✗ contradicts the real article</span></span>
+        <span class="lg"><span class="sn s-unk">? can't confirm (invented, or not in the article)</span></span>
+      </div>
+      <div id="avBody" class="av-wait"><div class="empty">The article viewer loads as you get here.</div></div>
+    </div>
+
+    <div class="grid2 dc-how" id="b-how" data-stop>
+      <div class="card">
+        <h3 id="howTitle">How we fact-check</h3>
+        <ol class="how" id="howList"></ol>
+        <details class="tbl"><summary>The exact request</summary><pre class="prompt" id="articlePrompt"></pre></details>
+      </div>
+      <div class="card">
+        <h3>How we scale up to every topic</h3>
+        <p class="sub" id="scaleText"></p>
+        <div class="chart" id="chPop" style="--h:300px"></div>
+        <p class="takeaway" id="popTake"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ------------------------------------------------------------------ -->
+<section id="s5" class="section" data-title="The definition test" data-short="Definitions">
+  <div class="wrap">
+    <p class="kicker">5 · The definition test</p>
+    <h2>A closer look: just the opening paragraph</h2>
+    <p class="lead">Same topics, a smaller task: write only the article's first paragraph, about 120 words. Short texts let us measure meaning, wording, dates and facts in detail, and compare with a paraphrase of the real text. <span id="defCaveat">Similarity tells us whether the rewrite is on topic, not whether its facts are right. For the facts, see the sentence-by-sentence check in section 4.</span></p>
+    <ol class="steps" id="steps"></ol>
+    <div class="card block">
+      <h3>The exact request</h3>
+      <pre class="prompt" id="promptBox"></pre>
+      <p class="note">Greedy decoding (no randomness), run locally with MLX. No internet, no retrieval: only what is in the weights.</p>
+    </div>
+    <h3 class="subhead" data-stop>What came back out?</h3>
+    <p class="lead" id="resLead"></p>
+    <div class="stats" id="headline"></div>
+
+    <div class="card block" data-stop id="b-dist">
+      <div class="block-head"><h3>How close are the rewrites?</h3><div class="seg seg-models" id="distModel"></div></div>
+      <p class="sub">Similarity between each real article and four kinds of text (1 = same meaning). The grey curves are the reference points.</p>
+      <div class="chart" id="chDist" style="--h:360px"></div>
+      <p class="takeaway" id="distTake"></p>
+    </div>
+
+    <div class="card block" data-stop id="b-core">
+      <div class="block-head"><h3>How the scores change with popularity</h3>
+        <label class="select"><span class="sr">Metric</span><select id="coreMetric"></select></label></div>
+      <p class="sub" id="coreSub"></p>
+      <div class="chart" id="chCore" style="--h:420px"></div>
+      <p class="takeaway" id="coreTake"></p>
+      <details class="tbl"><summary>Show as a table</summary><div id="coreTable"></div></details>
+    </div>
+
+    <div class="card block" data-stop id="b-params">
+      <div class="block-head"><h3>More parameters, less loss</h3></div>
+      <p class="sub">Like adding terms to a regression: the same test with each model size. One line per popularity group; each group weights its popularity levels by their number of articles.</p>
+      <div class="chart" id="chParams" style="--h:400px"></div>
+      <p class="takeaway" id="paramsTake"></p>
+    </div>
+
+    <div class="card block" data-stop id="b-bpb">
+      <div class="block-head"><h3>The model as a zip tool</h3>
+        <div class="seg" id="bpbAll" role="group" aria-label="Zip tools shown">
+          <button type="button" class="seg-b is-on" data-all="0">Best zip tools</button>
+          <button type="button" class="seg-b" data-all="1">All zip tools</button>
+        </div></div>
+      <p class="sub">Bits needed per byte of real Wikipedia text (lower = better compression). An LLM can drive a lossless compressor: the less surprised it is by the next word, the fewer bits that word costs.</p>
+      <div class="chart" id="chBpb" style="--h:380px"></div>
+      <p class="takeaway" id="bpbTake"></p>
+    </div>
+
+    <div class="card block" data-stop id="b-words">
+      <div class="block-head"><h3>Meaning, not words</h3>
+        <div class="seg" id="wordsX" role="group" aria-label="Horizontal axis">
+          <button type="button" class="seg-b is-on" data-x="rougeL">Word overlap</button>
+          <button type="button" class="seg-b" data-x="verbatim8">Copied 8-word runs</button>
+        </div></div>
+      <p class="sub">Each dot is one article. Up = same meaning. Right = same words.</p>
+      <div class="chart" id="chWords" style="--h:400px"></div>
+      <p class="takeaway" id="wordsTake"></p>
+    </div>
+
+    <div class="card block" data-stop id="b-facts">
+      <div class="block-head"><h3>Numbers and dates are the first casualties</h3></div>
+      <div class="grid2 tight">
+        <div>
+          <p class="sub" id="yearsSub">Share of the years in the real opening paragraph that the rewrite also mentions.</p>
+          <div class="chart" id="chYears" style="--h:330px"></div>
+        </div>
+        <div>
+          <p class="sub" id="factsSub">Key-facts check: a larger local model lists up to five key facts from the real opening paragraph of a random subset of the topics and checks each one against the model's opening paragraph.</p>
+          <div class="chart" id="chFacts" style="--h:330px"></div>
+        </div>
+      </div>
+      <p class="takeaway" id="factsTake"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ------------------------------------------------------------------ -->
+<section id="s6" class="section" data-title="Explorer" data-short="Explorer">
+  <div class="wrap wide">
+    <p class="kicker">6 · Explorer</p>
+    <h2>Read them yourself</h2>
+    <p class="lead">Every article in the experiment, next to what each model wrote from the title alone. The model texts are machine output, not checked here: much of what they say is false.</p>
+    <div class="explorer card">
+      <div class="ex-filters">
+        <input type="search" id="exSearch" placeholder="Search titles…" aria-label="Search titles">
+        <select id="exBin" aria-label="Popularity"></select>
+        <select id="exKind" aria-label="Kind">
+          <option value="">All kinds</option><option value="real">Sampled</option><option value="showcase">Famous</option><option value="fictional">Made-up</option>
+        </select>
+        <select id="exModel" aria-label="Model for sorting"></select>
+        <select id="exSort" aria-label="Sort">
+          <option value="views">Most viewed</option><option value="views_asc">Least viewed</option>
+          <option value="cos">Most similar</option><option value="cos_asc">Least similar</option><option value="title">A to Z</option>
+        </select>
+        <button type="button" class="btn" id="exRandom">Random article</button>
+      </div>
+      <div class="ex-body">
+        <div class="ex-list" id="exList" role="listbox" aria-label="Articles"></div>
+        <div class="ex-detail" id="exDetail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ------------------------------------------------------------------ -->
+<section id="s7" class="section" data-title="What surprises the model" data-short="Surprise">
+  <div class="wrap">
+    <p class="kicker">7 · What the model finds surprising</p>
+    <h2>Cheap words are already in the model</h2>
+    <p class="lead">The model reads the real article one token at a time and guesses the next one. Bits measure its surprise: 1 bit is a coin flip, 10 bits is a 1‑in‑1,000 guess.</p>
+    <div class="card">
+      <div class="toolbar wrapline">
+        <div class="pills" id="surItems" role="group" aria-label="Article"></div>
+        <div class="seg seg-models" id="surModel" role="group" aria-label="Model"></div>
+      </div>
+      <div class="heat-legend" id="surLegend"></div>
+      <div class="heat" id="surHeat"></div>
+      <div class="heat-stats" id="surStats"></div>
+    </div>
+    <p class="takeaway">Pale tokens cost almost nothing: the model already knew them. Dark tokens are what it could not predict: a fact it lacks, or just an unusual choice of words. Add up the bits and you get the compressed size of the text.</p>
+  </div>
+</section>
+
+<!-- 8 ------------------------------------------------------------------ -->
+<section id="s8" class="section" data-title="Made-up topics" data-short="Made-up">
+  <div class="wrap">
+    <p class="kicker">8 · Made-up topics</p>
+    <h2>Ask about something that does not exist</h2>
+    <p class="lead" id="ficLead">We invented titles that sound real and checked that none exists on Wikipedia. Then we asked for the article.</p>
+    <div class="fic-rates" id="ficRates"></div>
+    <div class="fiction" id="fiction"></div>
+    <p class="takeaway">Hallucination is extrapolation. Like a curve predicting far outside its data, the model fills the gap with something plausible, in the same confident tone.</p>
+  </div>
+</section>
+
+<!-- 9 ------------------------------------------------------------------ -->
+<section id="s9" class="section" data-title="Live lab" data-short="Live lab">
+  <div class="wrap">
+    <p class="kicker">9 · Live lab</p>
+    <h2>Try it now</h2>
+    <p class="lead">Pick any topic. The model on this computer writes its opening paragraph, or the whole article, from the title while we watch.</p>
+    <div id="live"></div>
+  </div>
+</section>
+
+<!-- 10 ----------------------------------------------------------------- -->
+<section id="s10" class="section" data-title="Takeaways" data-short="Takeaways">
+  <div class="wrap">
+    <p class="kicker">10 · Takeaways for business</p>
+    <h2>What this means when you use AI at work</h2>
+    <div class="takeaways" id="takeaways"></div>
+    <footer class="foot" id="foot"></footer>
+  </div>
+</section>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<script src="data/results.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/regression.js"></script>
+<script src="js/live.js"></script>
+<script src="js/decompress.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
